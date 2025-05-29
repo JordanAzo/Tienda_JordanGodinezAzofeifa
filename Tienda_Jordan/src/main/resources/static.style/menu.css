@@ -51,3 +51,12 @@ body{
     padding: 8px 12px;
     border-radius: 4px;
 }
+.imagen-izquierda{
+    background-color: #33ffff;
+    height: 700px;
+    position: unset;
+    top: 0;
+    left: 0;
+    width: 30%;
+    
+}
