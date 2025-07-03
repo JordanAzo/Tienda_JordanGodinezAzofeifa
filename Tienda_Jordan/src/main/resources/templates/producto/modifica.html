@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 th:if="${producto.idProducto == null}">Nuevo Producto</h4>
+                        <h4 th:if="${producto.idProducto != null}">Modificar Producto</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Formulario de producto -->
+                        <form th:action="@{/producto/guardar}" 
+                              th:object="${producto}" 
+                              method="post" 
+                              enctype="multipart/form-data">
+                            
+                            <!-- Campo oculto para ID (solo en edición) -->
+                            <input type="hidden" th:field="*{idProducto}">
+                            
+                            <!-- Descripción -->
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">Descripción *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       th:field="*{descripcion}" 
+                                       id="descripcion" 
+                                       placeholder="Ingrese la descripción del producto" 
+                                       required>
+                            </div>
+                            
+                            <!-- Detalle -->
+                            <div class="mb-3">
+                                <label for="detalle" class="form-label">Detalle</label>
+                                <textarea class="form-control" 
+                                          th:field="*{detalle}" 
+                                          id="detalle" 
+                                          rows="3" 
+                                          placeholder="Descripción detallada del producto"></textarea>
+                            </div>
+                            
+                            <!-- Precio -->
+                            <div class="mb-3">
+                                <label for="precio" class="form-label">Precio *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           th:field="*{precio}" 
+                                           id="precio" 
+                                           step="0.01" 
+                                           min="0" 
+                                           placeholder="0.00" 
+                                           required>
+                                </div>
+                            </div>
+                            
+                            <!-- Existencias -->
+                            <div class="mb-3">
+                                <label for="existencias" class="form-label">Existencias *</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       th:field="*{existencias}" 
+                                       id="existencias" 
+                                       min="0" 
+                                       placeholder="0" 
+                                       required>
+                            </div>
+                            
+                            <!-- Categoría -->
+                            <div class="mb-3">
+                                <label for="categoria" class="form-label">Categoría *</label>
+                                <select class="form-select" 
+                                        th:field="*{categoria.idCategoria}" 
+                                        id="categoria" 
+                                        required>
+                                    <option value="">Seleccione una categoría</option>
+                                    <option th:each="categoria : ${categorias}" 
+                                            th:value="${categoria.idCategoria}" 
+                                            th:text="${categoria.descripcion}"
+                                            th:selected="${categoria.idCategoria == producto.categoria?.idCategoria}">
+                                        Categoría
+                                    </option>
+                                </select>
+                            </div>
+                            
+                            <!-- Estado -->
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           th:field="*{activo}" 
+                                           id="activo">
+                                    <label class="form-check-label" for="activo">
+                                        Producto Activo
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Imagen actual (solo en edición) -->
+                            <div class="mb-3" th:if="${producto.rutaImagen != null and !producto.rutaImagen.empty}">
+                                <label class="form-label">Imagen Actual</label>
+                                <div>
+                                    <img th:src="${producto.rutaImagen}" 
+                                         alt="Imagen del producto" 
+                                         class="img-thumbnail" 
+                                         style="max-width: 200px; max-height: 200px;">
+                                </div>
+                            </div>
+                            
+                            <!-- Subir nueva imagen -->
+                            <div class="mb-3">
+                                <label for="imagenFile" class="form-label">
+                                    <span th:if="${producto.idProducto == null}">Imagen del Producto</span>
+                                    <span th:if="${producto.idProducto != null}">Cambiar Imagen</span>
+                                </label>
+                                <input type="file" 
+                                       class="form-control" 
+                                       id="imagenFile" 
+                                       name="imagenFile" 
+                                       accept="image/*">
+                                <div class="form-text">
+                                    Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                                </div>
+                            </div>
+                            
+                            <!-- Botones -->
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/producto/listado}" class="btn btn-secondary me-md-2">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    <span th:if="${producto.idProducto == null}">Guardar</span>
+                                    <span th:if="${producto.idProducto != null}">Actualizar</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    
+    <!-- Script para preview de imagen -->
+    <script>
+        document.getElementById('imagenFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Crear preview de imagen si no existe
+                    let preview = document.getElementById('imagePreview');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = 'imagePreview';
+                        preview.className = 'img-thumbnail mt-2';
+                        preview.style.maxWidth = '200px';
+                        preview.style.maxHeight = '200px';
+                        document.getElementById('imagenFile').parentNode.appendChild(preview);
+                    }
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

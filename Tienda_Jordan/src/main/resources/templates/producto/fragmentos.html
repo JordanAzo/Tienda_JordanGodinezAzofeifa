@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head th:fragment="head">
+        <title>Productos</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+    
+    <body>
+        <!-- Fragmento para botones de acción -->
+        <section th:fragment="botonesAgregar" class="py-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#agregarProducto">
+                            <i class="fas fa-plus"></i> [[#{producto.agregar}]]
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-info btn-block" data-bs-toggle="modal" data-bs-target="#listarProductosModal">
+                            <i class="fas fa-list"></i> [[#{producto.listado}]]
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal para agregar/modificar producto -->
+        <section th:fragment="agregarProducto">
+            <div id="agregarProducto" 
+                 class="modal fade" 
+                 tabindex="-1" 
+                 aria-labelledby="agregarProductoLabel" 
+                 aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="agregarProductoLabel">
+                                <i class="fas fa-box"></i> [[#{producto.datos}]]
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form th:action="@{/producto/guardar}" th:object="${producto}" method="POST" class="was-validated" enctype="multipart/form-data">
+                            <div class="modal-body">
+                                <input type="hidden" th:field="*{idProducto}">
+                                <input type="hidden" th:field="*{rutaImagen}">
+                                
+                                <div class="mb-3">
+                                    <label for="descripcion" class="form-label">[[#{producto.descripcion}]] *</label>
+                                    <input type="text" class="form-control" name="descripcion" th:field="*{descripcion}" required="true">
+                                    <div class="invalid-feedback">
+                                        Este campo es requerido
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="detalle" class="form-label">[[#{producto.detalle}]]</label>
+                                    <textarea class="form-control" name="detalle" th:field="*{detalle}" rows="3" placeholder="Descripción detallada del producto"></textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="precio" class="form-label">[[#{producto.precio}]] *</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₡</span>
+                                                <input type="number" class="form-control" name="precio" th:field="*{precio}" step="0.01" min="0" required="true">
+                                                <div class="invalid-feedback">
+                                                    Ingrese un precio válido
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="existencias" class="form-label">[[#{producto.existencias}]] *</label>
+                                            <input type="number" class="form-control" name="existencias" th:field="*{existencias}" min="0" required="true">
+                                            <div class="invalid-feedback">
+                                                Ingrese cantidad de existencias
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="categoria" class="form-label">[[#{producto.categoria}]] *</label>
+                                    <select class="form-select" name="categoria.idCategoria" th:field="*{categoria}" required="true">
+                                        <option value="">[[#{accion.seleccionar}]]</option>
+                                        <option th:each="categoria : ${categorias}" 
+                                                th:value="${categoria.idCategoria}" 
+                                                th:text="${categoria.descripcion}">
+                                        </option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Seleccione una categoría
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="imagen" class="form-label">[[#{producto.imagen}]]</label>
+                                    <input class="form-control" type="file" name="imagenFile" accept="image/*" onchange="readURL(this);">
+                                    <small class="form-text text-muted">Formatos permitidos: JPG, PNG, GIF (máx. 5MB)</small>
+                                </div>
+                                
+                                <!-- Preview de imagen actual -->
+                                <div class="mb-3" th:if="${producto.rutaImagen}">
+                                    <label class="form-label">Imagen actual:</label>
+                                    <div class="text-center">
+                                        <img th:src="@{${producto.rutaImagen}}" 
+                                             class="img-thumbnail" 
+                                             style="max-height: 150px;"
+                                             th:alt="${producto.descripcion}">
+                                    </div>
+                                </div>
+                                
+                                <!-- Preview de nueva imagen -->
+                                <div class="mb-3">
+                                    <img id="blah" 
+                                         src="#" 
+                                         alt="Vista previa" 
+                                         class="img-thumbnail mx-auto d-block" 
+                                         style="max-height: 150px; display: none;">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="activo" th:field="*{activo}">
+                                        <label class="form-check-label">[[#{producto.activo}]]</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </button>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-save"></i> [[#{accion.guardar}]]
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal para listado de productos -->
+        <section th:fragment="listadoProductosModal">
+            <div id="listarProductosModal" 
+                 class="modal fade" 
+                 tabindex="-1" 
+                 aria-labelledby="listarProductosModalLabel" 
+                 aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title" id="listarProductosModalLabel">
+                                <i class="fas fa-list"></i> [[#{producto.listado}]]
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Filtros dentro del modal -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-filter"></i> [[#{producto.filtros}]]
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label for="filtroCategoria" class="form-label">[[#{producto.categoria}]]</label>
+                                            <select class="form-select form-select-sm" id="filtroCategoria" onchange="filtrarPorCategoria()">
+                                                <option value="">[[#{accion.todos}]]</option>
+                                                <option th:each="categoria : ${categorias}" 
+                                                        th:value="${categoria.idCategoria}" 
+                                                        th:text="${categoria.descripcion}">
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="precioMin" class="form-label">Precio mínimo</label>
+                                            <input type="number" class="form-control form-control-sm" id="precioMin" step="0.01" onchange="filtrarPorPrecio()">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="precioMax" class="form-label">Precio máximo</label>
+                                            <input type="number" class="form-control form-control-sm" id="precioMax" step="0.01" onchange="filtrarPorPrecio()">
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="limpiarFiltros()">
+                                                <i class="fas fa-eraser"></i> Limpiar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabla de productos -->
+                            <div th:if="${productos != null and !productos.empty}">
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="table-dark sticky-top">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>[[#{producto.descripcion}]]</th>
+                                                <th>[[#{producto.categoria}]]</th>
+                                                <th>[[#{producto.precio}]]</th>
+                                                <th>[[#{producto.existencias}]]</th>
+                                                <th>[[#{producto.total}]]</th>
+                                                <th>[[#{producto.activo}]]</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="producto, contador : ${productos}" 
+                                                class="producto-item"
+                                                th:attr="data-categoria-id=${producto.categoria?.idCategoria}, data-precio=${producto.precio}">
+                                                <td th:text="${contador.count}">1</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <img th:if="${producto.rutaImagen}" 
+                                                             th:src="@{${producto.rutaImagen}}" 
+                                                             class="rounded me-2" 
+                                                             style="width: 40px; height: 40px; object-fit: cover;"
+                                                             th:alt="${producto.descripcion}">
+                                                        <div th:unless="${producto.rutaImagen}" 
+                                                             class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                                             style="width: 40px; height: 40px;">
+                                                            <i class="fas fa-image text-muted"></i>
+                                                        </div>
+                                                        <span th:text="${producto.descripcion}">Descripción</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary" th:text="${producto.categoria?.descripcion ?: 'Sin categoría'}">Categoría</span>
+                                                </td>
+                                                <td>
+                                                    <strong th:text="${'₡' + #numbers.formatDecimal(producto.precio,1,2,'POINT')}">Precio</strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge" 
+                                                          th:classappend="${producto.existencias > 10 ? 'bg-success' : (producto.existencias > 0 ? 'bg-warning' : 'bg-danger')}"
+                                                          th:text="${producto.existencias}">Existencias</span>
+                                                </td>
+                                                <td th:text="${'₡' + #numbers.formatDecimal(producto.precio * producto.existencias,1,2,'POINT')}">Total</td>
+                                                <td class="text-center">
+                                                    <i th:if="${producto.activo}" class="fas fa-check-circle text-success" title="Activo"></i>
+                                                    <i th:unless="${producto.activo}" class="fas fa-times-circle text-danger" title="Inactivo"></i>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm" role="group">
+                                                        <button type="button" 
+                                                                class="btn btn-outline-success" 
+                                                                th:onclick="'editarProducto(' + ${producto.idProducto} + ')'"
+                                                                title="Modificar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button type="button" 
+                                                                class="btn btn-outline-danger"
+                                                                th:onclick="'confirmarEliminar(' + ${producto.idProducto} + ', \'' + ${producto.descripcion} + '\')'"
+                                                                title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="text-center p-4" th:if="${productos == null or productos.empty}">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">[[#{lista.vacia}]]</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="me-auto">
+                                <div class="d-flex align-items-center">
+                                    <div class="card text-center bg-primary text-white me-3" style="min-width: 120px;">
+                                        <div class="card-body p-2">
+                                            <h6 class="mb-0" th:text="${totalProductos ?: 0}">0</h6>
+                                            <small>Total productos</small>
+                                        </div>
+                                    </div>
+                                    <div class="card text-center bg-success text-white" style="min-width: 120px;">
+                                        <div class="card-body p-2">
+                                            <h6 class="mb-0" th:text="${#numbers.formatDecimal((productos != null ? productos.![precio * existencias].sum() : 0),1,2,'POINT')}">0</h6>
+                                            <small>Valor total</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modal de confirmación para eliminar -->
+        <section th:fragment="modalConfirmacion">
+            <div id="confirmarEliminarModal" class="modal fade" tabindex="-1" aria-labelledby="confirmarEliminarLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title" id="confirmarEliminarLabel">
+                                <i class="fas fa-exclamation-triangle"></i> Confirmar eliminación
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                            <p>¿Está seguro que desea eliminar el producto?</p>
+                            <strong id="nombreProductoEliminar" class="text-danger"></strong>
+                            <p class="text-muted mt-2">Esta acción no se puede deshacer.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <a id="enlaceEliminar" href="#" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fragmento para tarjetas de productos (vista de tienda) - mantiene funcionalidad original -->
+        <section th:fragment="tarjetasProductos" id="productos">
+            <div class="container">
+                <div class="row" th:if="${productos != null and !productos.empty}">
+                    <div class="col-lg-4 col-md-6 mb-4" th:each="producto : ${productos}">
+                        <div class="card h-100 shadow-sm">
+                            <img th:if="${producto.rutaImagen}" 
+                                 th:src="@{${producto.rutaImagen}}" 
+                                 class="card-img-top" 
+                                 th:alt="${producto.descripcion}"
+                                 style="height: 200px; object-fit: cover;">
+                            <div th:unless="${producto.rutaImagen}" 
+                                 class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${producto.descripcion}">Nombre</h5>
+                                <p class="card-text" th:text="${producto.detalle}">Detalles</p>
+                                <p class="card-text">
+                                    <strong class="text-primary" th:text="${'₡' + #numbers.formatDecimal(producto.precio,1,2,'POINT')}">Precio</strong>
+                                </p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        Existencias: 
+                                        <span class="badge" 
+                                              th:classappend="${producto.existencias > 10 ? 'bg-success' : (producto.existencias > 0 ? 'bg-warning' : 'bg-danger')}"
+                                              th:text="${producto.existencias}">0</span>
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer text-center bg-transparent">
+                                <button class="btn btn-primary" 
+                                        th:if="${producto.existencias > 0}"
+                                        th:onclick="'addToCart(' + ${producto.idProducto} + ')'">
+                                    <i class="fas fa-shopping-cart"></i> Agregar al carrito
+                                </button>
+                                <span class="badge bg-danger" th:unless="${producto.existencias > 0}">
+                                    <i class="fas fa-times"></i> Agotado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center p-4" th:if="${productos == null or productos.empty}">
+                    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay productos disponibles</h5>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scripts -->
+        <section th:fragment="scripts">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+            <script>
+                function readURL(input) {
+                    if (input.files && input.files[0]) {
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            document.getElementById('blah').style.display = 'block';
+                            document.getElementById('blah').src = e.target.result;
+                        };
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+                
+                function addToCart(idProducto) {
+                    // Implementar lógica del carrito
+                    console.log('Agregando producto ' + idProducto + ' al carrito');
+                    // Aquí puedes agregar una notificación toast
+                    showToast('Producto agregado al carrito', 'success');
+                }
+                
+                function editarProducto(idProducto) {
+                    // Cerrar modal de listado
+                    var listModal = bootstrap.Modal.getInstance(document.getElementById('listarProductosModal'));
+                    if (listModal) {
+                        listModal.hide();
+                    }
+                    
+                    // Redirigir a editar o cargar datos en modal de edición
+                    window.location.href = '/producto/modificar/' + idProducto;
+                }
+                
+                function confirmarEliminar(idProducto, nombreProducto) {
+                    document.getElementById('nombreProductoEliminar').textContent = nombreProducto;
+                    document.getElementById('enlaceEliminar').href = '/producto/eliminar/' + idProducto;
+                    
+                    var confirmarModal = new bootstrap.Modal(document.getElementById('confirmarEliminarModal'));
+                    confirmarModal.show();
+                }
+                
+                function filtrarPorCategoria() {
+                    var categoriaId = document.getElementById('filtroCategoria').value;
+                    var productos = document.querySelectorAll('.producto-item');
+                    
+                    productos.forEach(function(producto) {
+                        var productoCategoriaId = producto.getAttribute('data-categoria-id');
+                        if (categoriaId === '' || productoCategoriaId === categoriaId) {
+                            producto.style.display = 'table-row';
+                        } else {
+                            producto.style.display = 'none';
+                        }
+                    });
+                }
+                
+                function filtrarPorPrecio() {
+                    var precioMin = parseFloat(document.getElementById('precioMin').value) || 0;
+                    var precioMax = parseFloat(document.getElementById('precioMax').value) || 999999;
+                    var productos = document.querySelectorAll('.producto-item');
+                    
+                    productos.forEach(function(producto) {
+                        var productoPrecio = parseFloat(producto.getAttribute('data-precio'));
+                        if (productoPrecio >= precioMin && productoPrecio <= precioMax) {
+                            producto.style.display = 'table-row';
+                        } else {
+                            producto.style.display = 'none';
+                        }
+                    });
+                }
+                
+                function limpiarFiltros() {
+                    document.getElementById('filtroCategoria').value = '';
+                    document.getElementById('precioMin').value = '';
+                    document.getElementById('precioMax').value = '';
+                    
+                    var productos = document.querySelectorAll('.producto-item');
+                    productos.forEach(function(producto) {
+                        producto.style.display = 'table-row';
+                    });
+                }
+                
+                function showToast(message, type = 'info') {
+                    // Crear toast dinámicamente
+                    const toastHtml = `
+                        <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    ${message}
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Agregar al contenedor de toasts (crear si no existe)
+                    let toastContainer = document.getElementById('toast-container');
+                    if (!toastContainer) {
+                        toastContainer = document.createElement('div');
+                        toastContainer.id = 'toast-container';
+                        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                        document.body.appendChild(toastContainer);
+                    }
+                    
+                    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+                    
+                    // Mostrar el toast
+                    const toastElement = toastContainer.lastElementChild;
+                    const toast = new bootstrap.Toast(toastElement);
+                    toast.show();
+                    
+                    // Remover el elemento después de que se oculte
+                    toastElement.addEventListener('hidden.bs.toast', function() {
+                        toastElement.remove();
+                    });
+                }
+                
+                // Event listeners para cerrar modales automáticamente después de guardar
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Si hay mensajes de éxito, mostrar toast y cerrar modal
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('success') === 'true') {
+                        showToast('Producto guardado exitosamente', 'success');
+                        
+                        // Cerrar modal si está abierto
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('agregarProducto'));
+                        if (modal) {
+                            modal.hide();
+                        }
+                        
+                        // Actualizar listado si está visible
+                        const listModal = bootstrap.Modal.getInstance(document.getElementById('listarProductosModal'));
+                        if (listModal) {
+                            location.reload(); // O cargar datos via AJAX
+                        }
+                    }
+                });
+            </script>
+        </section>
+    </body>
+</html>
