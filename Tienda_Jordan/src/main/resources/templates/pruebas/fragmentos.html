@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <body>
+        <!-- 1 Sección principal para mostrar la informaccion de las categorias -->
+        <section th:fragment="categoriasTabs" id="categorias">
+            <div class="row py-4">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link" 
+                           aria-current="page" 
+                           href="/pruebas/listado"
+                           >[[#{pruebas.todas}]]</a>
+                    </li>
+                    <li th:each="categoria : ${categorias}" class="nav-item">
+                        <a class="nav-link" 
+                           th:href="@{/pruebas/listado/}+${categoria.idCategoria}"
+                           >[[${categoria.descripcion}]]</a>
+                    </li>                    
+                </ul>
+            </div>
+        </section>
+        
+        <section th:fragment="filtros" class="bg-light">
+            <div class="row py-2">
+                <div class="col-md-1"></div>
+                <div class="col-md-3">
+                    <form method="POST" th:action="@{/pruebas/query2}"
+                          class="was-validated">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="precioInf">[[#{pruebas.precio.inferior}]]</label>
+                                    <input type="number" class="form-control"
+                                           th:value="${precioInf}"
+                                           th:name="precioInf" required="true"/>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="precioSup">[[#{prueba.precio.superior}]]</label>
+                                    <input type="number" class="form-control"
+                                           th:value="${precioSup}"
+                                           th:name="precioSup" required="true"/>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fas fa-check"></i> [[#{pruebas.jpql}]]
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- AGREGAR ESTE FRAGMENTO QUE FALTA -->
+        <section th:fragment="listadoProductos">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>[[#{pruebas.listado.productos}]]</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>[[#{producto.id}]]</th>
+                                                <th>[[#{producto.nombre}]]</th>
+                                                <th>[[#{producto.descripcion}]]</th>
+                                                <th>[[#{producto.precio}]]</th>
+                                                <th>[[#{producto.categoria}]]</th>
+                                                <th>[[#{producto.stock}]]</th>
+                                                <th>[[#{accion}]]</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="producto : ${productos}">
+                                                <td th:text="${producto.idProducto}"></td>
+                                                <td th:text="${producto.descripcion}"></td>
+                                                <td th:text="${producto.detalle}"></td>
+                                                <td th:text="${producto.precio}"></td>
+                                                <td th:text="${producto.categoria.descripcion}"></td>
+                                                <td th:text="${producto.existencias}"></td>
+                                                <td>
+                                                    <a th:href="@{/producto/detalle/{id}(id=${producto.idProducto})}" 
+                                                       class="btn btn-info btn-sm">
+                                                        <i class="fas fa-eye"></i> [[#{accion.ver}]]
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Mensaje cuando no hay productos -->
+                                <div th:if="${#lists.isEmpty(productos)}" class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i> [[#{pruebas.sin.productos}]]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </body>
+</html>
