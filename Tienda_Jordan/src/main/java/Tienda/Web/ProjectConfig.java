@@ -22,6 +22,13 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+
 
 @Configuration
 public class ProjectConfig implements WebMvcConfigurer {
@@ -101,23 +108,37 @@ public class ProjectConfig implements WebMvcConfigurer {
 
 /* El siguiente método se utiliza para completar la clase no es 
     realmente funcional, la próxima semana se reemplaza con usuarios de BD */    
+ //   @Bean
+   //public UserDetailsService users() {
+     //   UserDetails admin = User.builder()
+       //         .username("juan")
+         //       .password("{noop}123")
+           //     .roles("USER", "VENDEDOR", "ADMIN")
+             //   .build();
+        //UserDetails sales = User.builder()
+          //      .username("rebeca")
+            //    .password("{noop}456")
+              //  .roles("USER", "VENDEDOR")
+         //       .build();
+       // UserDetails user = User.builder()
+       //         .username("pedro")
+         //       .password("{noop}789")
+           //     .roles("USER")
+             //   .build();
+       // return new InMemoryUserDetailsManager(user, sales, admin);
+    //}
+    
+    @Autowired
+    private UserDetailsService userDetailsService;
+    
     @Bean
-    public UserDetailsService users() {
-        UserDetails admin = User.builder()
-                .username("juan")
-                .password("{noop}123")
-                .roles("USER", "VENDEDOR", "ADMIN")
-                .build();
-        UserDetails sales = User.builder()
-                .username("rebeca")
-                .password("{noop}456")
-                .roles("USER", "VENDEDOR")
-                .build();
-        UserDetails user = User.builder()
-                .username("pedro")
-                .password("{noop}789")
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user, sales, admin);
-    }
+public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+
+@Bean
+public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
+}
+
 }
